@@ -31,7 +31,7 @@ export default function LoginPage() {
       router.push("/lobby");
     } catch (err) {
       console.error("Connection failed:", err);
-      toast.error("Failed to connect. Is the server running?");
+      toast.error("Failed to connect to the server. Please try again later.");
     } finally {
       setLoading(false);
     }
