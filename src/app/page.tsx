@@ -1,65 +1,103 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { useNakama } from "@/hooks/useNakama";
+import toast from "react-hot-toast";
+
+export default function LoginPage() {
+  const [nickname, setNickname] = useState("");
+  const [loading, setLoading] = useState(false);
+  const { connect } = useNakama();
+  const router = useRouter();
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const trimmed = nickname.trim();
+    if (!trimmed || trimmed.length < 1) {
+      toast.error("Nickname must be at least 1 characters");
+      return;
+    }
+    if (trimmed.length > 16) {
+      toast.error("Nickname must be 16 characters or less");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      await connect(trimmed);
+      router.push("/lobby");
+    } catch (err) {
+      console.error("Connection failed:", err);
+      toast.error("Failed to connect. Is the server running?");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
+    <main className="relative flex min-h-dvh flex-col items-center justify-center overflow-hidden px-4">
+      {/* Background grid */}
+      <div className="bg-grid pointer-events-none absolute inset-0 opacity-30" />
+
+      {/* Gradient glow */}
+      <div className="pointer-events-none absolute top-1/3 left-1/2 h-[400px] w-[600px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary/10 blur-[120px]" />
+
+      <div className="relative z-10 flex w-full max-w-sm flex-col items-center gap-8">
+        {/* Logo / App name */}
+        <div className="flex flex-col items-center gap-2">
+          <div className="flex items-center gap-3">
+            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary text-2xl font-black text-primary-foreground shadow-lg shadow-primary/30">
+              ✕
+            </div>
+            <div className="flex h-12 w-12 items-center justify-center rounded-xl border-2 border-primary text-2xl font-black text-primary shadow-lg shadow-primary/30">
+              ○
+            </div>
+          </div>
+          <h1 className="text-glow mt-4 text-4xl font-black tracking-tight">
+            TicTacGo
           </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+          <p className="text-sm text-muted-foreground">
+            Real-time multiplayer Tic-Tac-Toe
           </p>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+
+        {/* Login form */}
+        <form onSubmit={handleSubmit} className="flex w-full flex-col gap-4">
+          <Input
+            id="nickname-input"
+            type="text"
+            placeholder="Enter your nickname"
+            value={nickname}
+            onChange={(e) => setNickname(e.target.value)}
+            maxLength={16}
+            autoFocus
+            className="h-12 text-center text-lg"
+          />
+          <Button
+            id="continue-button"
+            type="submit"
+            size="lg"
+            disabled={loading || nickname.trim().length < 2}
+            className="h-12 text-base font-semibold"
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
+            {loading ? (
+              <span className="flex items-center gap-2">
+                <span className="h-4 w-4 animate-spin rounded-full border-2 border-primary-foreground border-t-transparent" />
+                Connecting...
+              </span>
+            ) : (
+              "Continue"
+            )}
+          </Button>
+        </form>
+
+        <p className="text-xs text-muted-foreground/60">
+          No account needed — just pick a name and play
+        </p>
+      </div>
+    </main>
   );
 }
