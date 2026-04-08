@@ -29,9 +29,10 @@ export default function LoginPage() {
     try {
       await connect(trimmed);
       router.push("/lobby");
-    } catch (err) {
+    } catch (err: any) {
       console.error("Connection failed:", err);
-      toast.error("Failed to connect to the server. Please try again later.");
+      const errorMessage = err.message || "Failed to connect to the server. Please try again later.";
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
